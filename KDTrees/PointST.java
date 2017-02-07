@@ -1,4 +1,3 @@
-
 /**
  * Write a description of class PointST here.
  * 
@@ -6,6 +5,7 @@
  * @version (a version number or a date)
  */
 public class PointST<Value> {
+    private RedBlackBST st;
     private Node root;
     private int size;
 
@@ -25,12 +25,13 @@ public class PointST<Value> {
     
     public PointST()                                // construct an empty symbol table of points 
     {
+        st = new RedBlackBST<Value>();
         size = 0;
     }
 
     public boolean isEmpty()                      // is the symbol table empty? 
     {
-        return size == 0;
+        return st.size();
     }
 
     public int size()                         // number of points 
@@ -39,7 +40,8 @@ public class PointST<Value> {
     }
 
     public void put(Point2D p, Value val)      // associate the value val with point p
-    
+    {
+    }
 
     public Value get(Point2D p)                 // value associated with point p 
 
@@ -50,7 +52,6 @@ public class PointST<Value> {
         return
     }
 
-
     public Iterable<Point2D> points()                       // all points in the symbol table 
 
     
@@ -59,8 +60,6 @@ public class PointST<Value> {
     
 
     public Point2D nearest(Point2D p)             // a nearest neighbor to point p; null if the symbol table is empty 
-
-
 
     public static void main(String[] args)                  // unit testing of the methods (not graded) 
 }

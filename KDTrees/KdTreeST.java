@@ -5,12 +5,12 @@
  *
  * 
  */
-public class KdTreeST
+public class KdTreeST<Value>
 {
     private Node root;
     private int size;
     
-    private static final double X_MIN, X_MAX, Y_MIN, Y_MAX;
+    private static double X_MIN, X_MAX, Y_MIN, Y_MAX;
 
     private class Node 
     {
@@ -18,7 +18,7 @@ public class KdTreeST
         private Value value;    // the symbol table maps the point to this value
         private RectHV rect;    // the axis-aligned rectangle corresponding to this node
         private Node lb;        // the left/bottom subtree
-        private Node rt;        // the right/top subtree
+        private Node rb;        // the right/top subtree
 
         public Node(Point2D p, Value value, RectHV rect) 
         {
@@ -27,7 +27,7 @@ public class KdTreeST
             this.rect = rect;
 
             lb = null;
-            rt = null;
+            rb = null;
         }
     }
 
@@ -84,24 +84,24 @@ public class KdTreeST
         }
         else if(level % 2 == 0)
         {
-            if(point.x < r.p.x)
+            if(point.x() < r.p.x())
             {
-                put(point, value, r.lb, ++level, x_min, r.p.x, y_min, y_max);
+                put(point, value, r.lb, ++level, x_min, r.p.x(), y_min, y_max);
             }
             else
             {
-                put(point, value, r.rb, ++level, r.p.x, x_max, y_min, y_max);
+                put(point, value, r.rb, ++level, r.p.x(), x_max, y_min, y_max);
             }
         }
         else
         {
-            if(point.y < r.p.y)
+            if(point.y() < r.p.y())
             {
-                put(point, value, r.lb, ++level, x_min, x_max, y_min, r.p.y);
+                put(point, value, r.lb, ++level, x_min, x_max, y_min, r.p.y());
             }
             else
             {
-                put(point, value, r.rb, ++level, x_min, x_max, r.p.y, y_max);
+                put(point, value, r.rb, ++level, x_min, x_max, r.p.y(), y_max);
             }
         }
     }
@@ -111,7 +111,7 @@ public class KdTreeST
      */
     public Value get(Point2D point)
     {
-        return get(Point2D point, Node root, 0);
+        return get(point, root, 0);
     }
 
     /**
@@ -129,7 +129,7 @@ public class KdTreeST
         }
         else if(level % 2 == 0)
         {
-            if(point.x < r.p.x)
+            if(point.x() < r.p.x())
             {
                 return get(point, r.lb, ++level);
             }
@@ -140,7 +140,7 @@ public class KdTreeST
         }
         else
         {
-            if(point.y < r.p.y)
+            if(point.y() < r.p.y())
             {
                 return get(point, r.lb, ++level);
             }
@@ -174,7 +174,7 @@ public class KdTreeST
         }
         else if(level % 2 == 0)
         {
-            if(point.x < r.p.x)
+            if(point.x() < r.p.x())
             {
                 return contains(r.lb, point, ++level);
             }
@@ -185,7 +185,7 @@ public class KdTreeST
         }
         else
         {
-            if(point.y < r.p.y)
+            if(point.y() < r.p.y())
             {
                 return contains(r.lb, point, ++level);
             }
@@ -209,7 +209,7 @@ public class KdTreeST
     /**
      * helper method to recursively add the points of nodes into the queue
      */
-    public void points(Node r, Queue<Points2D> queue)
+    public void points(Node r, Queue<Point2D> queue)
     {
         if(r != null)
         {
@@ -227,7 +227,7 @@ public class KdTreeST
      */
     public Iterable<Point2D> range(RectHV rect) 
     {
-        Queue<Points2D> queue = new Queue<Points2D>();
+        Queue<Point2D> queue = new Queue<Point2D>();
         range(root, rect, queue);
         return queue;
     }
@@ -237,6 +237,75 @@ public class KdTreeST
      */
     public void range(Node r, RectHV rect, Queue<Point2D> queue)
     {
-        // check to see if the rectangles intersect. then check for containing. then run on both subtrees
+        if(r == null)
+        {
+            // do nothing but condition included for efficiency
+        }
+        else if(r.rect.intersects(rect))
+        {
+            if(rect.contains(r.p))
+            {
+                queue.enqueue(r.p);
+            }
+            
+            // recusively check left and right branches
+            range(r.lb, rect, queue);
+            range(r.rb, rect, queue);
+        }
+    }
+    
+    /**
+     * find the point nearest to the target point
+     */
+    public Point2D nearest(Point2D point)
+    {
+        if(isEmpty())
+        {
+            return null;
+        }
+        else
+        {
+            Point2D closestPoint = nearest(root, point, null);
+            return closestPoint;
+        }
+    }
+    
+    /**
+     * helper method for nearest
+     */
+    private Point2D nearest(Node r, Point2D point, Point2D closestPoint)
+    {
+        // if the current node is null, return the previous closestPoint
+        if(r == null)
+        {
+            return closestPoint;
+        }
+        else
+        {
+            if(closestPoint == null)
+            {
+                closestPoint = r.p;
+            }
+            else if(r.rect.distanceSquaredTo(point) <= closestPoint.distanceSquaredTo(point))
+            {
+                if(r.p.distanceSquaredTo(point) < closestPoint.distanceSquaredTo(point))
+                {
+                    closestPoint = r.p;
+                }
+                
+                if(r.rb.rect.contains(point) && r.rb != null)
+                {
+                    closestPoint = nearest(r.rb, point, closestPoint);
+                    closestPoint = nearest(r.lb, point, closestPoint);
+                }
+                else
+                {
+                    closestPoint = nearest(r.lb, point, closestPoint);
+                    closestPoint = nearest(r.rb, point, closestPoint);
+                }
+            }
+            
+            return closestPoint;
+        }
     }
 }

@@ -7,11 +7,8 @@
  *
  ******************************************************************************/
 
- 
-
 import java.util.Arrays;
 import java.util.Comparator;
-
 
 /**
  *  The {@code Point} class is an immutable data type to encapsulate a
