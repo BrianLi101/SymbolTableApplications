@@ -3,7 +3,7 @@
  * 01/14/16
  * KdTreeST.java
  *
- * 
+ * KdTree assignment
  */
 public class KdTreeST<Value>
 {
@@ -14,11 +14,11 @@ public class KdTreeST<Value>
 
     private class Node 
     {
-        private Point2D p;      // the point
-        private Value value;    // the symbol table maps the point to this value
-        private RectHV rect;    // the axis-aligned rectangle corresponding to this node
-        private Node lb;        // the left/bottom subtree
-        private Node rb;        // the right/top subtree
+        public Point2D p;      // the point
+        public Value value;    // the symbol table maps the point to this value
+        public RectHV rect;    // the axis-aligned rectangle corresponding to this node
+        public Node lb;        // the left/bottom subtree
+        public Node rb;        // the right/top subtree
 
         public Node(Point2D p, Value value, RectHV rect) 
         {
@@ -67,43 +67,44 @@ public class KdTreeST<Value>
     {
         if(point == null)
             throw new IllegalArgumentException("first argument to put() is null");
-
-        // employ a private helper method to store data points
-        put(point, value, root, 0, X_MIN, X_MAX, Y_MIN, Y_MAX);
+        
+        root = put(point, value, root, 0, X_MIN, X_MAX, Y_MIN, Y_MAX);
     }
 
     /**
      * helper method for put that acts recursively
      */
-    private void put(Point2D point, Value value, Node r, int level, double x_min, double x_max, double y_min, double y_max)
+    private Node put(Point2D point, Value value, Node r, int level, double x_min, double x_max, double y_min, double y_max)
     {
         if(r == null)
         {
-            r = new Node(point, value, new RectHV(x_min, x_max, y_min, y_max));
             size += 1;
+            return new Node(point, value, new RectHV(x_min, y_min, x_max, y_max)); 
         }
         else if(level % 2 == 0)
         {
             if(point.x() < r.p.x())
             {
-                put(point, value, r.lb, ++level, x_min, r.p.x(), y_min, y_max);
+                r.lb = put(point, value, r.lb, ++level, x_min, r.p.x(), y_min, y_max);
             }
             else
             {
-                put(point, value, r.rb, ++level, r.p.x(), x_max, y_min, y_max);
+                r.rb = put(point, value, r.rb, ++level, r.p.x(), x_max, y_min, y_max);
             }
         }
         else
         {
             if(point.y() < r.p.y())
             {
-                put(point, value, r.lb, ++level, x_min, x_max, y_min, r.p.y());
+                r.lb = put(point, value, r.lb, ++level, x_min, x_max, y_min, r.p.y());
             }
             else
             {
-                put(point, value, r.rb, ++level, x_min, x_max, r.p.y(), y_max);
+                r.rb = put(point, value, r.rb, ++level, x_min, x_max, r.p.y(), y_max);
             }
         }
+        
+        return r;
     }
 
     /**
@@ -265,7 +266,7 @@ public class KdTreeST<Value>
         }
         else
         {
-            Point2D closestPoint = nearest(root, point, null);
+            Point2D closestPoint = nearest(root, point, root.p);
             return closestPoint;
         }
     }
@@ -293,7 +294,7 @@ public class KdTreeST<Value>
                     closestPoint = r.p;
                 }
                 
-                if(r.rb.rect.contains(point) && r.rb != null)
+                if(r.rb != null && r.rb.rect.contains(point))
                 {
                     closestPoint = nearest(r.rb, point, closestPoint);
                     closestPoint = nearest(r.lb, point, closestPoint);

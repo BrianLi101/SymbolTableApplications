@@ -1,4 +1,4 @@
-225	Country	Per Capita GDP	Num Internet Users per 100 People
+225	Per Capita GDP	101450.00	277.10	Num Internet Users per 100 People	98.2	1.8
 India	1598.30	26
 Bangladesh	1211.70	14.4
 Pakistan	1434.70	18
